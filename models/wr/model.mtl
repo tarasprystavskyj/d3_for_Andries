@@ -1,0 +1,43 @@
+# exported by https://3dviewer.net
+newmtl wraith_body_cyberninja
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_0.jpeg
+newmtl wraith_eye_base
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_3.jpeg
+newmtl wraith_gauntlet_cyberninja
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_6.jpeg
+newmtl wraith_head
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_10.jpeg
+newmtl wraith_helm_cyberninja
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_13.jpeg
+newmtl wraith_jumpkit_cyberninja
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+Ns 0
+d 1
+map_Kd Binary_17.jpeg

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Andries Test</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		
+	</head>
+
+	<body style="background-color:#f5f5f5">
+		<div id="info">
+			<a>
+				Here we want to load a obj/mtl file and decimate it and then export it
+			</a>
+			<input type="number" id='txtDecimate' value="40"></input>
+			<button type="button" id='btnDecimate'>Decimate Model</button>
+			<button type="button" id='glbDownload'>DOWNLOAD AS GLB</button>
+			<div>
+				<label>Number of Vertices:</label><input type="number" id='txtVertex' value="0" disabled ></input>
+				<label>Number of potential vertices:</label><input type="number" id='txtNewVertex' value="0" disabled ></input>
+			</div>
+		</div>
+
+		<script type="module">
+			
+			//imports needed for the scripts to work
+			//import * as THREE from 'https://threejs.org/build/three.module.js';
+			import * as THREE from '/js/newthree.module.js';
+
+			//this is out camera controls
+			//import { OrbitControls } from 'https://unpkg.com/three@0.120.1/examples/jsm/controls/OrbitControls.js';
+			import { OrbitControls } from '/js/OrbitControls.js';
+
+			//this script allows us to load an OBJ file
+			//import { OBJLoader } from 'https://threejs.org/examples/jsm/loaders/OBJLoader.js';
+			import { OBJLoader } from '/js/OBJLoader.js';
+			//This script allows us to load a mtl file
+			//import { MTLLoader } from 'https://threejs.org/examples/jsm/loaders/MTLLoader.js';
+			import { MTLLoader } from '/js/MTLLoader.js';
+			//this script merges obj and mtl files
+			//import { DDSLoader } from'https://threejs.org/examples/jsm/loaders/DDSLoader.js';
+			//import { DDSLoader } from'/js/DDSLoader.js';
+
+			//this script allows us to export/save the file as a GLB
+			//import { GLTFExporter } from 'https://threejs.org/examples/jsm/exporters/GLTFExporter.js';
+			import { GLTFExporter } from '/js/GLTFExporter.js';
+
+			//import { SimplifyModifier } from 'https://threejs.org/examples/jsm/modifiers/SimplifyModifier.js';
+			//import { simplifyMesh } from '/js/SimplifyModifier3.js';
+			import { SimplifyModifier } from '/js/SimplifyModifier.js';
+			var modifier = new SimplifyModifier();
+
+			import { Geometry } from "/js/Geometry.js";
+
+			//Create Scene
+			let scene, perspectiveCamera, renderer;
+
+			var modelName = '';
+
+			//Decimation options
+			var modelWireframe = false;
+			var decimateAmount = 1000;//any amount will do if it can be calculated
+
+			var aggressivenessOfDecimation = 7;//How agressive edges are collapsed (standard is 7)
+			var updateModel = 5;//Update mesh after ${update} iterations.lower values give better results (standard is 5)
+			var recompute = false//Whether to recompute errors on each mesh update. Enable for best results.
+
+
+			var model;
+			modelName = 'Duck';
+			var modelFolderPath = 'models/'
+			var modelPath = modelFolderPath + modelName + '.obj';
+			var mtlPath = modelFolderPath + modelName + '.mtl';
+			var newMaterial;
+			var objectModel;
+
+			//other settings
+			//var modelMetalness = 0.5;
+				//var modelOpacity = 1;
+				//var modelRoughness = 1;
+				//var modelAlphaTest = 0;
+				//var modelDepthWrite = true;
+				var modelVertexColors = false;
+				var modelFlatShading = true;//material will 'hug' the model if set to true
+				var modelWireframe = false;
+
+			var meshMaterial;
+			var meshMaterialMap;
+
+			let mtlLoader = new MTLLoader();
+			let objLoader = new OBJLoader();
+
+			var textureLoader = new THREE.TextureLoader();
+			
+
+			function init() 
+			{
+				
+				scene = new THREE.Scene();
+
+				const backgroundcolor = 0x727272;
+				scene.background = new THREE.Color(backgroundcolor);
+
+				const fov = 60;
+				const aspect = window.innerWidth/window.innerHeight;
+				const near = 0.1;
+				const far = 5000;
+
+				perspectiveCamera = new THREE.PerspectiveCamera( fov, aspect, near, far );
+				perspectiveCamera.position.z = 3500;
+
+
+				const ambientLight = new THREE.AmbientLight( 0xc9c9c9, 0.3 );
+				scene.add( ambientLight );
+
+				const pointLight = new THREE.PointLight( 0xffffff, 0.5 );
+				perspectiveCamera.add( pointLight );
+				scene.add( perspectiveCamera );
+
+				//end of lighting
+
+				renderer = new THREE.WebGLRenderer({antialias:true});
+				renderer.setSize(window.innerWidth,window.innerHeight);
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				document.body.appendChild(renderer.domElement);
+
+				var startVertexes = 0;
+
+				
+
+				mtlLoader.load(mtlPath, function(material)
+				{
+					material.preload();
+
+					newMaterial = material;
+
+					objLoader.setMaterials( material ).load(modelPath, function(object)
+					{
+						object.position.y = 0;
+						objectModel = object;
+
+						var decimationAmount = document.getElementById("txtDecimate").value;
+
+						//count the triangles in the scene
+						object.traverse( function( node ) 
+						{
+							if ( node instanceof THREE.Mesh )//make sure the child is part of the model and not stuff that compilers add in
+							{
+								startVertexes += node.geometry.attributes.position.count/3;
+								node.material.wireframe = modelWireframe;
+								node.material.flatShading = modelFlatShading;
+
+								//node.geometry.computeFaceNormals();
+								//node.geometry.computeVertexNormals();
+								
+								node.updateMatrix();
+
+								console.log(node.material.map.image.currentSrc);
+							}
+						});
+						
+						document.getElementById("txtVertex").value = startVertexes;
+						document.getElementById("txtNewVertex").value = Math.floor(startVertexes * (decimationAmount/100));
+
+						scene.add( object );
+						
+					});
+				});
+
+				
+				animate();
+			
+				const controls = new OrbitControls(perspectiveCamera, renderer.domElement);
+				controls.target.set(0,0.9,0);
+
+				//controls.update() must be called after any manual changes to the camera's transform
+				controls.update();
+			}
+			
+			//Add the models to view to the viewer
+			function animate() 
+			{
+				perspectiveCamera.updateProjectionMatrix();
+				renderer.render(scene,perspectiveCamera);
+				requestAnimationFrame(animate);
+			}
+
+			//Export of the glb starts here
+			function exportGLTF( input ) 
+			{
+				const gltfExporter = new GLTFExporter();
+
+				//options to det for the download
+				const options = 
+				{
+					trs: true,
+					onlyVisible: true,
+					truncateDrawRange: true,
+					binary: true,
+					maxTextureSize: 0 || Infinity // To prevent NaN value
+				};
+
+				gltfExporter.parse( input, function ( result ) 
+				{
+
+					if ( result instanceof ArrayBuffer ) 
+					{
+						saveArrayBuffer( result, modelName + '.glb' );
+					} 
+					else 
+					{
+						const output = JSON.stringify( result, null, 2 );
+						console.log( output );
+						saveString( output, modelName + '.gltf' );
+					}
+
+				}, options );
+
+			}
+
+			//calls the save file and sets the type of file for download
+			function saveArrayBuffer( buffer, filename ) 
+			{
+				save( new Blob( [ buffer ], { type: 'application/octet-stream' } ), filename );
+			}
+
+			//this click a button that gets created for a firefox workaround
+			function save( blob, filename ) 
+			{
+
+				link.href = URL.createObjectURL( blob );
+				link.download = filename;
+				link.click();
+			}
+
+			
+
+			//Creates a download link to download the file
+			const link = document.createElement( 'a' );
+			link.style.display = 'none';
+			document.body.appendChild( link );
+
+			init();
+
+			document.getElementById( 'glbDownload' ).addEventListener( 'click', function () 
+			{
+				exportGLTF( scene );
+			} );
+
+			document.getElementById( 'btnDecimate' ).addEventListener( 'click', function () 
+			{
+				//var modifier = new simplifyMesh();
+
+				var decimationAmount = document.getElementById("txtDecimate").value;
+				scene.clear();
+				
+				console.log(modelName + ' is ready for decimation');
+
+				var modelOptimized = objectModel.clone();
+
+				modelOptimized.traverse( function( node ) 
+				{
+
+					if ( node instanceof THREE.Mesh )//make sure the child is part of the model and not stuff that compilers add in
+					{
+						node.updateMatrix();
+
+						var oldMaterialToMerge = node.material.map.image.currentSrc;
+
+						var newTriangleAmount = Math.floor((node.geometry.attributes.position.count/3) * (decimationAmount/100));
+
+						//var nodeToGeometry = new Geometry().fromBufferGeometry( node.geometry );
+
+						node.geometry = modifier.modify(node.geometry, newTriangleAmount);
+						node.geometry.computeFaceNormals();
+						
+						node.material.flatShading = modelFlatShading;
+						node.material.wireframe = modelWireframe;
+						node.needsUpdate = true;
+
+						var oldMaterialToMerge = new THREE.MeshStandardMaterial( { map: new THREE.TextureLoader().load( oldMaterialToMerge ) } );
+
+						textureLoader.crossOrigin = "";
+						textureLoader.load(node.material.map.image.currentSrc,
+							function ( texture ) {
+								texture.minFilter = THREE.NearestFilter;
+								var material = new THREE.MeshPhongMaterial( { map: texture, side: THREE.DoubleSide } );
+								console.log(material);
+								var myBox2mesh = new THREE.Mesh(node.geometry, material);
+								// add mesh to scene:
+								//scene.add( myBox2mesh );
+							}
+						);
+
+						node.updateMatrix();
+						
+					}
+
+					scene.add(node);
+				});
+
+				
+
+				const ambientLight = new THREE.AmbientLight( 0xc9c9c9, 0.9 );
+				scene.add( ambientLight );
+				scene.add( perspectiveCamera );
+				
+				animate();
+			});
+
+			document.getElementById( 'txtDecimate' ).addEventListener( 'change', function () 
+			{
+				var decimationAmount = document.getElementById("txtDecimate").value;
+
+				if(decimationAmount > 99)
+				{
+					document.getElementById("txtDecimate").value = 99;
+				}
+				else if (decimationAmount < 1)
+				{
+					document.getElementById("txtDecimate").value = 1;
+				}
+				
+				decimationAmount = document.getElementById("txtDecimate").value;
+
+				var startVertexes = document.getElementById("txtVertex").value ;
+				document.getElementById("txtNewVertex").value = Math.floor(startVertexes * (decimationAmount/100));
+				
+				
+			} );
+
+		</script>
+	</body>
+</html>
