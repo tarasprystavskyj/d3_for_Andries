@@ -1,0 +1,25 @@
+# Exported from 3D Builder
+
+newmtl wraith_gauntlet_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_6_8153810648107067296.png
+
+newmtl wraith_jumpkit_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_17_17832851910588591680.png
+
+newmtl wraith_helm_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_13_8328196163999553924.png
+
+newmtl Mat_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_3_6672996682974157280.png
+
+newmtl wraith_head_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_10_12136749704190523488.png
+
+newmtl wraith_body_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd texture_0_15853527909305393568.png
