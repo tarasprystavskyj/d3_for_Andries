@@ -8,7 +8,7 @@
 		
 	</head>
 
-	<body style="background-color:#f5f5f5">
+	<body style="">
 		<div id="info">
 			<a>
 				Here we want to load a obj/mtl file and decimate it and then export it
@@ -19,6 +19,13 @@
 
 			<button type="button" id='glbDownload'>DOWNLOAD AS GLB</button>
 		</div>
+
+		<div class="drop-zone">
+			<span class="drop-zone__prompt">Drop file here or click to upload</span>
+			<input type="file" name="myFile" class="drop-zone__input" required multiple>
+		</div>
+		  
+
 
 		<script type="module">
 			
@@ -42,6 +49,11 @@
 			//this script allows us to export/save the file as a GLB
 			//import { GLTFExporter } from 'https://threejs.org/examples/jsm/exporters/GLTFExporter.js';
 			import { GLTFExporter } from '/js/GLTFExporter.js';
+
+
+
+
+
 
 			//Create Scene
 			let scene, perspectiveCamera, renderer;
@@ -212,6 +224,7 @@
 					//obj loader
 					if(fullname.includes(".obj") || fullname.includes(".OBJ"))
 					{
+						
 						loader = new MTLLoader();
 
 						let objLoader = new OBJLoader();
@@ -222,15 +235,15 @@
 							{
 								material.preload();
 								console.log(material.materials.length);
-
-
+								
+								
 								objLoader.setMaterials( material ).load(modelPath, function(object)
 								{
+									
 									var texture;
 
 									object.traverse( function( node ) 
 									{
-										
 										
 										for (var i = 0; i < modelImages.length; i++) 
 										{
@@ -240,7 +253,7 @@
 
 										if (node instanceof THREE.Mesh) 
 										{
-											//node.material.map = texture;
+											node.material.map = texture;
 										}
 									});
 									scene.add( object );
@@ -335,6 +348,9 @@
             onFile();
             
         }, false);
+
+
+
 
 		</script>
 	</body>

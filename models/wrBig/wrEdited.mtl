@@ -1,0 +1,25 @@
+# Exported from 3D Builder
+
+newmtl wraith_gauntlet_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_0.jpeg
+
+newmtl wraith_jumpkit_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_3.jpeg
+
+newmtl wraith_helm_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_6.jpeg
+
+newmtl Mat_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_10.jpeg
+
+newmtl wraith_head_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_13.jpeg
+
+newmtl wraith_body_cyberninja_0
+Kd 1.000000 1.000000 1.000000
+map_Kd Binary_17.jpeg
