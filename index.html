@@ -411,13 +411,20 @@
 
 
 
-			setTimeout(function () {
-				init();
-			}, 3000)
+			function waitForPath() {
+				if (!!mtlPath && !!modelPath) 
+				{
+					init();
+				}
+				else 
+				{
+					setTimeout(waitForPath, 250);
+				}
+			}
+			waitForPath()
 
 
 		}
-
 
 		document.querySelectorAll(".drop-zone__input").forEach((inputElement) => {
 
