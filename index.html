@@ -24,7 +24,7 @@
 		<a>
 			Set the level of Decimation:
 		</a>
-		<input type="number" id='txtDecimate' min="0.1" max="2" step="0.1" value="0.5"></input>
+		<input type="number" id='txtDecimate' min="0.1" max="1" step="0.1" value="1"></input>
 		<button type="button" id='btnDecimate'>Decimate Model</button>
 		<button type="button" id='glbDownload'>DOWNLOAD AS GLB</button>
 		<button type="button" id='usdzDownload'>DOWNLOAD AS USDZ</button>
@@ -86,6 +86,7 @@
 		var modelPath
 		var mtlPath
 
+		var beginModel
 
 		var newMaterial;
 		var objectModel;
@@ -225,26 +226,6 @@
 			link.click();
 		}
 
-		// Decimate the Object with saving the UV
-		function recursivelyOptimize(model) {
-			if (model.isMesh) {
-				meshSimplifier(
-					model.originalGeometry || model.geometry,
-					decimationAmount,
-					true
-				).then((newGeo) => {
-					model.geometry = newGeo;
-				});
-			}
-			model.children.forEach(recursivelyOptimize);
-		}
-
-		// Optimize function
-		function optimizeModel(modelOptimized) {
-			recursivelyOptimize(modelOptimized);
-			return modelOptimized
-			// modelOptimized.position.set(modelMaxSize, 0, 0);
-		}
 
 		// Init function
 		function init() {
@@ -267,8 +248,8 @@
 			perspectiveCamera.position.z = 1500;
 
 
-			const ambientLight = new THREE.AmbientLight(0xc9c9c9, 0.3);
-			scene.add(ambientLight);
+			// const ambientLight = new THREE.AmbientLight(0xc9c9c9, 0.3);
+			// scene.add(ambientLight);
 
 			const pointLight = new THREE.PointLight(0xffffff, 0.5);
 			perspectiveCamera.add(pointLight);
@@ -292,7 +273,10 @@
 				objLoader.setMaterials(material).load(modelPath, function (object) {
 					object.position.y = 0;
 					objectModel = object;
+					beginModel = object.clone()
 
+					console.log('objectModel', objectModel)
+					console.log('beginModel', beginModel)
 
 					var box = new THREE.Box3().setFromObject(objectModel);
 
@@ -337,7 +321,6 @@
 					document.querySelector('.preloader-container').style.display = 'none'
 				});
 			});
-
 
 			animate();
 
@@ -467,30 +450,72 @@
 			exportUSDZ(scene);
 		});
 
-		document.getElementById('btnDecimate').addEventListener('click', function () {
+		// Decimate the Object with saving the UV
+		function recursivelyOptimize(model, decimationAmountValue) {
+			
+		}
+
+		// Optimize function
+		function optimizeModel(modelOptimized, decimationAmount) {
+			let newModel = modelOptimized.clone(); 
+			// recursivelyOptimize(newModel, decimationAmount);
+			console.log('optimizeModel decimationAmount', decimationAmount)
+			if (newModel.isMesh) {
+				meshSimplifier(
+					newModel.originalGeometry || newModel.geometry,
+					decimationAmount,
+					true
+				).then((newGeo) => {
+					newModel.geometry = newGeo;
+				});
+			}
+			newModel.children.forEach(recursivelyOptimize);
+
+
+			return newModel
+			// modelOptimized.position.set(modelMaxSize, 0, 0);
+		}
+
+		document.getElementById('btnDecimate').onclick = function () {
 			document.querySelector('.preloader-container').style.display = 'flex'
-			var decimationAmount = document.getElementById("txtDecimate").value;
-			var modelOptimized = objectModel;
+			var decimationAmountValue = document.getElementById("txtDecimate").value;
+			// var modelOptimized = objectModel.clone()
+			var modelOptimized = beginModel.clone()
+			
 
-			modelOptimized.traverse(function (node) {
+			modelOptimized.traverse(async function (node) {
 
-				if (node instanceof THREE.Mesh)//make sure the child is part of the model and not stuff that compilers add in
+				if (node instanceof THREE.Mesh) //make sure the child is part of the model and not stuff that compilers add in
 				{
 
-					var newmodel = optimizeModel(node)
+					scene.remove(objectModel);
+					scene.remove(modelOptimized);
+					scene.remove(beginModel);
+					scene.remove(node);
+					scene.children.forEach((child)=>{
+						if(child.isMesh){
+							scene.remove(child);
+						}
+					})
+					var a = await optimizeModel(node, decimationAmountValue)
+					scene.add(a);
 
-					var newOpt = optimizeModel(newmodel)
-
-					node.updateMatrix();
-
+					a.scale.set(0.2, 0.2, 0.2);
+					a.rotateY(232.5)
+					a.rotateX(181)
+					a.updateMatrix();
 				}
 
 			});
-
+			// setTimeout(function(){
+			// 	killWorkers();
+			// 	console.log('Killlllllllll')
+			// }, 3000)
+			
 			animate();
 			document.querySelector('.preloader-container').style.display = 'none'
 
-		});
+		};
 
 		document.getElementById('txtDecimate').addEventListener('change', function () {
 
